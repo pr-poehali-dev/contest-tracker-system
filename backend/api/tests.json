@@ -1,0 +1,54 @@
+{
+  "tests": [
+    {
+      "name": "GET stats",
+      "method": "GET",
+      "path": "/?action=stats",
+      "expectedStatus": 200,
+      "expectedBody": {"contests_active": 5},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET contests",
+      "method": "GET",
+      "path": "/?action=contests",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET users",
+      "method": "GET",
+      "path": "/?action=users",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET rating",
+      "method": "GET",
+      "path": "/?action=rating",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET achievements user 1",
+      "method": "GET",
+      "path": "/?action=achievements&user_id=1",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET applications",
+      "method": "GET",
+      "path": "/?action=applications",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "GET notifications user 1",
+      "method": "GET",
+      "path": "/?action=notifications&user_id=1",
+      "expectedStatus": 200,
+      "bodyMatcher": "partial"
+    }
+  ]
+}
