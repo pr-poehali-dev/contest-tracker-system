@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Icon from "@/components/ui/icon";
 import { api } from "@/lib/api";
+import UploadDiplomaModal from "@/components/UploadDiplomaModal";
 
 type Role = "student" | "teacher" | "admin" | "sysadmin";
 type Section =
@@ -62,6 +63,7 @@ export default function Index() {
   const [selectedContestId, setSelectedContestId] = useState("");
   const [bulkLoading, setBulkLoading] = useState(false);
   const [bulkResult, setBulkResult] = useState<string | null>(null);
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   // Data state
   const [stats, setStats] = useState<Record<string, number> | null>(null);
@@ -158,6 +160,12 @@ export default function Index() {
       user_id: parseInt(CURRENT_USER_ID),
     });
     loadApplications();
+  };
+
+  const handleUploadSuccess = () => {
+    setShowUploadModal(false);
+    loadAchievements();
+    loadRating();
   };
 
   const currentRole = ROLES.find((r) => r.id === role)!;
@@ -431,7 +439,10 @@ export default function Index() {
                     ))}
                   </div>
                 </div>
-                <button className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity">
+                <button
+                  onClick={() => setShowUploadModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:opacity-90 transition-opacity"
+                >
                   <Icon name="Upload" size={14} />
                   Загрузить диплом
                 </button>
@@ -461,7 +472,10 @@ export default function Index() {
                       </div>
                     </div>
                   ))}
-                  <div className="bg-secondary/30 border border-dashed border-border rounded-xl p-5 flex flex-col items-center justify-center gap-2 text-muted-foreground cursor-pointer hover:text-foreground hover:border-primary/30 transition-all card-lift">
+                  <div
+                    onClick={() => setShowUploadModal(true)}
+                    className="bg-secondary/30 border border-dashed border-border rounded-xl p-5 flex flex-col items-center justify-center gap-2 text-muted-foreground cursor-pointer hover:text-foreground hover:border-primary/30 transition-all card-lift"
+                  >
                     <Icon name="Plus" size={24} />
                     <span className="text-sm">Добавить достижение</span>
                   </div>
@@ -745,6 +759,14 @@ export default function Index() {
 
         </div>
       </main>
+
+      {showUploadModal && (
+        <UploadDiplomaModal
+          userId={parseInt(CURRENT_USER_ID)}
+          onClose={() => setShowUploadModal(false)}
+          onSuccess={handleUploadSuccess}
+        />
+      )}
     </div>
   );
 }

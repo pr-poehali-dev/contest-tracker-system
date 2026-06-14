@@ -5,7 +5,10 @@
 """
 import json
 import os
+import base64
+import uuid
 import psycopg2
+import boto3
 from psycopg2.extras import RealDictCursor
 
 S = "t_p85443557_contest_tracker_syst"
@@ -206,6 +209,37 @@ def handler(event: dict, context) -> dict:
                 cur.execute(f"UPDATE {S}.notifications SET read = TRUE WHERE user_id = %s", (user_id,))
                 conn.commit()
                 return resp(200, {"ok": True})
+
+            # POST ?action=upload_diploma
+            # body: { user_id, title, level, date_received, file_base64, file_name, contest_id? }
+            if action == "upload_diploma" and method == "POST":
+                file_b64 = body.get("file_base64", "")
+                file_name = body.get("file_name", "diploma.jpg")
+                # Decode
+                file_data = base64.b64decode(file_b64)
+                # Determine content type
+                ext = file_name.rsplit(".", 1)[-1].lower() if "." in file_name else "jpg"
+                ct_map = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", "pdf": "application/pdf", "webp": "image/webp"}
+                content_type = ct_map.get(ext, "application/octet-stream")
+                # Upload to S3
+                key = f"diplomas/{uuid.uuid4()}.{ext}"
+                s3 = boto3.client(
+                    "s3",
+                    endpoint_url="https://bucket.poehali.dev",
+                    aws_access_key_id=os.environ["AWS_ACCESS_KEY_ID"],
+                    aws_secret_access_key=os.environ["AWS_SECRET_ACCESS_KEY"],
+                )
+                s3.put_object(Bucket="files", Key=key, Body=file_data, ContentType=content_type)
+                doc_url = f"https://cdn.poehali.dev/projects/{os.environ['AWS_ACCESS_KEY_ID']}/bucket/{key}"
+                # Save achievement
+                cur.execute(
+                    f"INSERT INTO {S}.achievements (user_id, contest_id, title, level, date_received, verified, document_url) "
+                    "VALUES (%s, %s, %s, %s, %s, FALSE, %s) RETURNING *",
+                    (body["user_id"], body.get("contest_id"), body["title"],
+                     body.get("level", "participation"), body.get("date_received"), doc_url)
+                )
+                conn.commit()
+                return resp(201, dict(cur.fetchone(), document_url=doc_url))
 
             return resp(404, {"error": f"Unknown action: {action}"})
 

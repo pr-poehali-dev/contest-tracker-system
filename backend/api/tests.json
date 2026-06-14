@@ -49,6 +49,14 @@
       "path": "/?action=notifications&user_id=1",
       "expectedStatus": 200,
       "bodyMatcher": "partial"
+    },
+    {
+      "name": "POST upload_diploma missing fields",
+      "method": "POST",
+      "path": "/?action=upload_diploma",
+      "body": {},
+      "expectedStatus": 500,
+      "bodyMatcher": "partial"
     }
   ]
 }
